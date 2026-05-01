@@ -1,0 +1,17 @@
+name: Caller Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  greet-semtech:
+    uses: ./.github/workflows/reusable-greet.yml
+    with:
+      name: Semtech
+
+  greet-siemens:
+    uses: ./.github/workflows/reusable-greet.yml
+    with:
+      name: Siemens
