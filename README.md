@@ -2,48 +2,69 @@
 
 ## Overview
 
-This repository contains the solution for Assignment 3 on reusable GitHub Actions workflows. It demonstrates how to create, configure, and consume reusable workflows to simplify CI/CD setup across multiple repositories or projects.
+This repository demonstrates GitHub Actions reusable workflows by defining a reusable workflow and calling it from a parent workflow.
 
-## Contents
+The example shows how to extract shared workflow logic into `.github/workflows/reusable-greet.yml` and invoke it twice from `.github/workflows/caller.yml` with different inputs.
 
-- `README.md` - Project documentation and usage instructions.
-- `.github/workflows/` - (If present) reusable workflow definitions and example workflow files.
+## Repository Structure
 
-## Key Concepts
+- `README.md` - Project documentation.
+- `.github/workflows/reusable-greet.yml` - Reusable workflow definition.
+- `.github/workflows/caller.yml` - Workflow that calls the reusable workflow.
 
-- Reusable workflows allow you to define common CI/CD logic once and call it from other workflows.
-- They improve maintainability by centralizing shared steps, jobs, and configuration.
-- This repository is intended as a learning example for building reusable, modular GitHub Actions automation.
+## Workflows
 
-## Usage
+### `reusable-greet.yml`
 
-1. Create a reusable workflow in a repository under `.github/workflows/`.
-2. Reference the workflow using `uses: owner/repo/.github/workflows/workflow.yml@branch`.
-3. Pass input parameters and secrets as needed.
+- Trigger: `workflow_call`
+- Inputs:
+  - `name` (required string) — the name to greet.
+- Job:
+  - `greet` — prints a greeting message using `${{ inputs.name }}`.
 
-Example call from another workflow:
+### `caller.yml`
+
+- Trigger: `push` to `main`
+- Jobs:
+  - `greet-semtech` — calls the reusable workflow with `name: Semtech`
+  - `greet-siemens` — calls the reusable workflow with `name: Siemens`
+
+## How It Works
+
+1. The reusable workflow is defined in `.github/workflows/reusable-greet.yml`.
+2. It exposes a `workflow_call` event with a `name` input.
+3. The caller workflow uses `uses: ./.github/workflows/reusable-greet.yml` to invoke the reusable workflow locally.
+4. Inputs are passed via `with:`.
+
+## Example Usage
+
+This repository is already configured to run on push to `main`.
 
 ```yaml
 jobs:
-  call-reusable-workflow:
-    uses: owner/assignment3-reusable-workflows/.github/workflows/reusable-workflow.yml@main
+  greet-semtech:
+    uses: ./.github/workflows/reusable-greet.yml
     with:
-      example-input: "value"
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      name: Semtech
+
+  greet-siemens:
+    uses: ./.github/workflows/reusable-greet.yml
+    with:
+      name: Siemens
 ```
 
-## Recommended Structure
+## Best Practices
 
-- Keep reusable workflows in their own repository or a shared organization repo.
-- Use clear input names and default values.
-- Document expected inputs, outputs, and any required secrets.
+- Use reusable workflows for shared CI/CD logic across multiple repositories or modules.
+- Keep inputs clear and documented.
+- Prefer local reuse during development and repository reuse for cross-repo sharing.
+- Use workflow outputs and environment variables when sharing results between jobs.
 
 ## Notes
 
-- If this repository is part of a classroom assignment, update the workflows and documentation to match the assignment requirements.
-- Adjust branches, workflow file names, and input values as needed for your environment.
+- If you want to call this reusable workflow from another repository, update the `uses:` path to `owner/repo/.github/workflows/reusable-greet.yml@main`.
+- Add secrets or additional inputs as needed for more complex workflows.
 
 ## License
 
-This repository is released under the MIT License, unless otherwise specified.
+This repository is released under the MIT License unless otherwise specified.
